@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的专属相册</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+    .gallery-photos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        padding: 20px 0;
+        justify-items: center;
+        align-items: start;
+        background: rgba(255,255,255,0.15);
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(255,75,75,0.08);
+        margin-bottom: 30px;
+        animation: fadeIn 1.2s;
+    }
+    .gallery-photo {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(255,75,75,0.10);
+        padding: 12px 12px 18px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: transform 0.2s;
+        position: relative;
+        animation: fadeIn 1.2s;
+    }
+    .gallery-photo img {
+        width: 180px;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(255,75,75,0.08);
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+    }
+    .gallery-photo img:hover {
+        box-shadow: 0 6px 24px rgba(255,75,75,0.18);
+    }
+    .download-btn {
+        background: linear-gradient(45deg, #ffb347, #ff4b4b);
+        color: #fff;
+        border: none;
+        padding: 8px 22px;
+        border-radius: 18px;
+        font-size: 1em;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.12);
+        margin-top: 6px;
+        transition: all 0.2s;
+    }
+    .download-btn:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 16px rgba(255, 179, 71, 0.18);
+    }
+    .download-all-btn {
+        background: linear-gradient(45deg, #ff4b4b, #ffb347);
+        color: #fff;
+        border: none;
+        padding: 12px 36px;
+        border-radius: 24px;
+        font-size: 1.1em;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 75, 75, 0.15);
+        margin-bottom: 18px;
+        margin-top: 10px;
+        transition: all 0.3s;
+    }
+    .download-all-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 75, 75, 0.2);
+    }
+    .gallery-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0; top: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.7);
+        justify-content: center;
+        align-items: center;
+    }
+    .gallery-modal.active { display: flex; }
+    .gallery-modal-img {
+        max-width: 90vw;
+        max-height: 80vh;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        background: #fff;
+    }
+    .gallery-modal-close {
+        position: absolute;
+        top: 30px;
+        right: 40px;
+        font-size: 2em;
+        color: #fff;
+        cursor: pointer;
+        z-index: 10001;
+    }
+    .gallery-modal-arrow {
+        position: absolute;
+        top: 50%;
+        font-size: 2.5em;
+        color: #fff;
+        cursor: pointer;
+        z-index: 10001;
+        user-select: none;
+    }
+    .gallery-modal-arrow.left { left: 30px; }
+    .gallery-modal-arrow.right { right: 30px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="gallery-container">
+        <div class="gallery-title">我的专属相册</div>
+        <button class="download-all-btn" onclick="downloadAlbum()">下载整个相册</button>
+        <div class="gallery-photos" id="galleryPhotos"></div>
+        <button class="back-btn" onclick="window.location.href='index.html'">返回首页</button>
+    </div>
+    <div class="gallery-modal" id="galleryModal">
+        <span class="gallery-modal-close" id="modalClose">×</span>
+        <span class="gallery-modal-arrow left" id="modalPrev">&#8592;</span>
+        <img class="gallery-modal-img" id="modalImg" src="" alt="大图预览">
+        <span class="gallery-modal-arrow right" id="modalNext">&#8594;</span>
+    </div>
+    <script>
+    const gallery = document.getElementById('galleryPhotos');
+    const imgs = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+    if(imgs.length === 0) {
+        gallery.innerHTML = '<p style="color:#ff4b4b;">暂无上传照片，请先在首页上传。</p>';
+    } else {
+        imgs.forEach((src, idx) => {
+            const div = document.createElement('div');
+            div.className = 'gallery-photo';
+            div.innerHTML = `
+                <img src="${src}" alt="相册照片" data-idx="${idx}">
+                <button onclick="downloadImg('${src}')" class="download-btn">下载</button>
+            `;
+            gallery.appendChild(div);
+        });
+    }
+    // 下载单张图片
+    window.downloadImg = function(src) {
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = 'photo.jpg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+    // 下载整个相册为图片
+    window.downloadAlbum = function() {
+        html2canvas(document.getElementById('galleryPhotos'), {backgroundColor: '#fff'}).then(canvas => {
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = '我的专属相册.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    }
+    // 大图预览
+    const modal = document.getElementById('galleryModal');
+    const modalImg = document.getElementById('modalImg');
+    const modalClose = document.getElementById('modalClose');
+    const modalPrev = document.getElementById('modalPrev');
+    const modalNext = document.getElementById('modalNext');
+    let currentIdx = 0;
+    gallery.addEventListener('click', function(e) {
+        if(e.target.tagName === 'IMG') {
+            currentIdx = Number(e.target.dataset.idx);
+            showModal(currentIdx);
+        }
+    });
+    function showModal(idx) {
+        modalImg.src = imgs[idx];
+        modal.classList.add('active');
+    }
+    function hideModal() {
+        modal.classList.remove('active');
+    }
+    modalClose.onclick = hideModal;
+    modal.onclick = function(e) { if(e.target === modal) hideModal(); };
+    modalPrev.onclick = function(e) {
+        e.stopPropagation();
+        currentIdx = (currentIdx - 1 + imgs.length) % imgs.length;
+        showModal(currentIdx);
+    };
+    modalNext.onclick = function(e) {
+        e.stopPropagation();
+        currentIdx = (currentIdx + 1) % imgs.length;
+        showModal(currentIdx);
+    };
+    </script>
+</body>
+</html> 
