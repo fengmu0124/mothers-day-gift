@@ -5,9 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>致我最爱的妈妈</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+    .music-control {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 1001;
+        background: rgba(255,255,255,0.7);
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(255,75,75,0.12);
+        width: 48px; height: 48px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .music-control:hover { background: #ffeaea; }
+    .music-control svg { width: 28px; height: 28px; fill: #ff4b4b; }
+    .blessing-switch {
+        margin: 18px 0 0 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .blessing-text {
+        font-size: 1.3em;
+        color: #ff4b4b;
+        background: rgba(255,255,255,0.7);
+        padding: 10px 24px;
+        border-radius: 18px;
+        box-shadow: 0 2px 8px rgba(255,75,75,0.08);
+        min-height: 36px;
+        transition: all 0.4s;
+        text-align: center;
+        max-width: 90vw;
+    }
+    .blessing-btn {
+        background: linear-gradient(45deg, #ffb347, #ff4b4b);
+        color: #fff;
+        border: none;
+        padding: 6px 18px;
+        border-radius: 16px;
+        font-size: 1em;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.12);
+        transition: all 0.2s;
+    }
+    .blessing-btn:hover { background: #ff4b4b; }
+    .heart-rain {
+        pointer-events: none;
+        position: fixed;
+        left: 0; top: 0; width: 100vw; height: 100vh;
+        z-index: 1000;
+        overflow: hidden;
+    }
+    .heart-rain .heart {
+        position: absolute;
+        font-size: 1.5em;
+        color: #ff4b4b;
+        opacity: 0.7;
+        animation: heartDrop 3.5s linear forwards;
+        pointer-events: none;
+        user-select: none;
+    }
+    @keyframes heartDrop {
+        0% { transform: translateY(-40px) scale(1) rotate(0deg); opacity: 0.7; }
+        80% { opacity: 0.9; }
+        100% { transform: translateY(100vh) scale(1.2) rotate(30deg); opacity: 0; }
+    }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="mothersday-banner">Happy Mother's Day 母亲节快乐</div>
+    <div class="music-control" id="musicControl" title="播放/暂停音乐">
+        <svg id="musicIconPlay" viewBox="0 0 24 24" style="display:none"><path d="M8 5v14l11-7z"></path></svg>
+        <svg id="musicIconPause" viewBox="0 0 24 24"><path d="M6 19h4V5H6zm8-14v14h4V5z"></path></svg>
+    </div>
+    <div class="heart-rain" id="heartRain"></div>
+    <div class="container fade-in">
         <div class="heart-svg">
             <svg viewBox="0 0 1024 1024" width="100" height="100">
                 <defs>
@@ -32,8 +107,11 @@
             <p>愿您永远健康快乐</p>
             <p>您是我生命中最温暖的阳光</p>
         </div>
+        <div class="blessing-switch">
+            <div class="blessing-text" id="blessingText">妈妈，节日快乐！</div>
+        </div>
         <div class="photo-gallery">
-            <div class="photo-frame">
+            <div class="photo-frame photo-glow">
                 <img src="mom.jpg" alt="妈妈" class="photo-static" />
             </div>
         </div>
@@ -41,10 +119,72 @@
             <button class="love-btn">点击发送爱心</button>
         </div>
         <div class="floating-hearts"></div>
+        <footer class="footer-signature">2025年母亲节特别制作</footer>
     </div>
-    <audio id="bgMusic" loop>
-        <source src="music.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bgMusic" src="music.mp3" autoplay loop preload="auto"></audio>
     <script src="script.js"></script>
+    <script>
+    // 祝福语切换
+    const blessings = [
+        '妈妈，节日快乐！',
+        '愿您永远健康美丽，幸福常伴。',
+        '感谢您的无私付出和温暖陪伴。',
+        '有您在，家永远温馨。',
+        '愿时光温柔以待，愿您笑口常开。',
+        '妈妈，您辛苦了，爱您！',
+        '愿妈妈的每一天都充满阳光和爱。',
+        '世界上最美的风景，是您的笑容。'
+    ];
+    let blessingIdx = 0;
+    const blessingText = document.getElementById('blessingText');
+    function showBlessing(idx) {
+        blessingText.textContent = blessings[idx];
+    }
+    // 自动切换祝福语
+    setInterval(() => {
+        blessingIdx = (blessingIdx + 1) % blessings.length;
+        showBlessing(blessingIdx);
+    }, 6000);
+
+    // 爱心雨动画
+    const heartRain = document.getElementById('heartRain');
+    function createHeartRain() {
+        const heart = document.createElement('span');
+        heart.className = 'heart';
+        heart.innerHTML = '❤';
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.fontSize = (Math.random() * 18 + 18) + 'px';
+        heart.style.animationDuration = (Math.random() * 1.5 + 2.5) + 's';
+        heartRain.appendChild(heart);
+        setTimeout(() => heart.remove(), 3500);
+    }
+    setInterval(createHeartRain, 400);
+
+    // 音乐控制按钮
+    const bgm = document.getElementById('bgMusic');
+    const musicControl = document.getElementById('musicControl');
+    const iconPlay = document.getElementById('musicIconPlay');
+    const iconPause = document.getElementById('musicIconPause');
+    function updateMusicIcon() {
+        if (bgm.paused) {
+            iconPlay.style.display = '';
+            iconPause.style.display = 'none';
+        } else {
+            iconPlay.style.display = 'none';
+            iconPause.style.display = '';
+        }
+    }
+    musicControl.onclick = function() {
+        if (bgm.paused) {
+            bgm.play();
+        } else {
+            bgm.pause();
+        }
+        updateMusicIcon();
+    };
+    bgm.onplay = updateMusicIcon;
+    bgm.onpause = updateMusicIcon;
+    updateMusicIcon();
+    </script>
 </body>
 </html> 
